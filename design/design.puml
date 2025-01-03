@@ -1,0 +1,95 @@
+@startuml
+
+title 推送消息流程
+
+note "拿到sessionids" as note1
+
+(Kf-API)  ---> (FindActiveConnectionByCardId)
+
+(FindActiveConnectionByCardId) "SessionIds" ...|> (Kf-API)
+
+(Kf-API) "SessionIds" ---> (FindWebsocketServer)
+(FindWebsocketServer) "ServerIds" ...> (Kf-API)
+
+(Kf-API) "SessionIds" ---> (WebsocketServer)
+
+@enduml
+
+
+@startuml
+
+title websocket服务器和session对应关系
+
+class MultipleServer {
+    Servers []Server
+}
+
+
+class Server {
+    - conn map[string]Conn
+
+    --
+
+    + NewConn()
+    + DeleteConn()
+    + PushMessage(sessionId []string,body []byte) // 推送消息
+    + OnMessage() // 消息处理、投递消息队列
+}
+
+class Conn {
+    - id string
+
+    --
+
+    + Close()      // 关闭连接
+    + OnClose()    // 关闭事件
+    + Send([]byte) // 发送
+}
+
+class Redis {
+    - id string
+    - serverName string
+
+    --
+
+    + FindServerById()
+}
+
+MultipleServer "1" ...> "N" Server
+Server "1" ...> "N" Conn
+
+Server "N" ...> "N" Redis
+
+@enduml
+
+
+@startuml
+
+skinparam dpi 100
+skinparam maxWidth 800
+skinparam maxHeight 600
+
+title websocket连接管理
+
+(Client) "connect" --> (Server)
+(Server) "存储连接" --> (Redis)
+
+
+
+
+@enduml
+
+@startuml
+title 客户端消息发送、渲染流程
+
+participant 客服后台
+participant 服务器
+participant 客服前台
+
+客服后台 -> 服务器: 发送消息
+客服后台 -> 客服后台: 渲染pending状态,未收到同一条消息回执一直是pending
+服务器 -> 客服前台: 发送消息给前台
+服务器 -> 客服后台: 推送同一条消息给客服后台,客户端取消pending状态
+服务器 -> 客服后台: 如果客服后台有多个窗口，则当新消息渲染. 
+
+@enduml

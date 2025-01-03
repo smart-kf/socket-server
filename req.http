@@ -1,0 +1,5 @@
+POST http://localhost:9000/api/push
+Content-Type: application/json
+
+{"event": "reply","sessionId": "f473ebc847c19930a2a3136bba1832aeccc383e00156c570a808fbf5fefb7e33","data":
+"{\"content\":\"hello world\"}"}

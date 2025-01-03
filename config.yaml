@@ -1,0 +1,10 @@
+socketIo:
+  readTimeout: 5s
+  writeTimeout: 5s
+  pingTimeout: 25s
+  pingInterval: 20s
+  readBufferSize: 1024
+  writeBufferSize: 1024
+
+nsq:
+  address: 127.0.0.1:4150
