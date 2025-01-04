@@ -9,6 +9,7 @@ import (
 	"goim3/endpoints"
 	_ "goim3/infrastructure/gateway_impl"
 	"goim3/infrastructure/nsq"
+	"goim3/infrastructure/redis"
 )
 
 var (
@@ -23,6 +24,7 @@ func main() {
 
 	config.Load(configFile)
 	nsq.InitProducer()
+	redis.InitRedisClient()
 
 	var HttpServer endpoints.HttpServer
 

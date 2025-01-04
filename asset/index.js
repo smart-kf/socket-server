@@ -3,6 +3,8 @@ var socket = io("/",{
     // port: null,
     // secure: null,
     transports: ['websocket'],
+    query: "token=helloworld",
+    path: "/sub",
 });
 
 socket.on('reply', function (msg) {

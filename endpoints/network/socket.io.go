@@ -2,16 +2,18 @@ package network
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"net/http"
 	"sync"
 
 	"github.com/alibaba/ioc-golang/autowire/singleton"
+	xlogger "github.com/clearcodecn/log"
 	"github.com/gin-gonic/gin"
-	socketio "github.com/googollee/go-socket.io"
-	"github.com/googollee/go-socket.io/engineio"
-	"github.com/googollee/go-socket.io/engineio/transport"
-	"github.com/googollee/go-socket.io/engineio/transport/websocket"
+	"github.com/go-resty/resty/v2"
+	socketio "github.com/smart-kf/go-socket.io"
+	"github.com/smart-kf/go-socket.io/engineio"
+	"github.com/smart-kf/go-socket.io/engineio/transport"
+	"github.com/smart-kf/go-socket.io/engineio/transport/websocket"
 
 	websocket2 "goim3/application/websocket"
 	"goim3/config"
@@ -21,13 +23,15 @@ import (
 type WebsocketServer struct {
 	socketServer *socketio.Server
 
-	connMutex sync.Mutex
-	conns     map[string]socketio.Conn
+	mu              sync.Mutex // protect follow
+	conns           map[string]socketio.Conn
+	tokenSessionMap map[string]string // token: sessionId
 }
 
 func CreateWebsocketServer() *WebsocketServer {
 	wsServer := &WebsocketServer{
-		conns: make(map[string]socketio.Conn),
+		conns:           make(map[string]socketio.Conn),
+		tokenSessionMap: make(map[string]string),
 	}
 
 	idGenerator, err := singleton.GetImpl("IDGenerator", nil)
@@ -70,8 +74,38 @@ func (s *WebsocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // onRequestCheck 建立连接的验证代码
 func (s *WebsocketServer) onRequestCheck(r *http.Request) (http.Header, error) {
-	fmt.Println("onrequest")
+	// auth check.
+	if !config.Config.AuthCheck.Enable {
+		return nil, nil
+	}
+
+	if err := s.doAuthCheck(r); err != nil {
+		return nil, err
+	}
+
 	return http.Header{}, nil
+}
+
+func (s *WebsocketServer) doAuthCheck(r *http.Request) error {
+	client := resty.NewWithClient(
+		&http.Client{
+			Timeout: config.Config.AuthCheck.Timeout.Duration(),
+		},
+	)
+	req := client.R().SetBody(
+		map[string]interface{}{
+			"token": r.URL.Query().Get("token"),
+		},
+	)
+	rsp, err := req.Post(config.Config.AuthCheck.HttpUrl)
+	if err != nil {
+		return err
+	}
+	rsp.RawBody().Close()
+	if rsp.StatusCode() != config.Config.AuthCheck.ResponseCode {
+		return errors.New("auth failed")
+	}
+	return nil
 }
 
 // onConnectionInit 验证通过以后得初始化操作.
@@ -81,29 +115,13 @@ func (s *WebsocketServer) onConnectionInit(r *http.Request, conn engineio.Conn) 
 
 func (s *WebsocketServer) RegisterEvents() {
 	s.socketServer.OnConnect(
-		"/", func(c socketio.Conn) error {
-			s.connMutex.Lock()
-			s.conns[c.ID()] = c
-			s.connMutex.Unlock()
-			c.SetContext("")
-			return nil
-		},
+		"/", s.OnConnect,
 	)
 	s.socketServer.OnEvent("/", "message", s.onMessage)
-	s.socketServer.OnDisconnect(
-		"/", func(conn socketio.Conn, msg string) {
-			s.connMutex.Lock()
-			delete(s.conns, conn.ID())
-			s.connMutex.Unlock()
-			fmt.Println(conn.ID(), "closed", msg)
-		},
-	)
+	s.socketServer.OnDisconnect("/", s.onDisconnect)
 	s.socketServer.OnError(
-		"/", func(c socketio.Conn, err error) {
-			s.connMutex.Lock()
-			delete(s.conns, c.ID())
-			s.connMutex.Unlock()
-			fmt.Println(c.ID(), "error", err)
+		"/", func(conn socketio.Conn, err error) {
+			s.onDisconnect(conn, err.Error())
 		},
 	)
 }
@@ -111,6 +129,42 @@ func (s *WebsocketServer) RegisterEvents() {
 func (s *WebsocketServer) onMessage(conn socketio.Conn, msg string) {
 	var app websocket2.WebsocketApplication
 	app.OnMessage(context.Background(), msg)
+}
+
+func (s *WebsocketServer) OnConnect(conn socketio.Conn) error {
+	conn.SetContext("")
+	u := conn.URL()
+	token := u.Query().Get("token")
+
+	s.mu.Lock()
+	s.conns[conn.ID()] = conn
+	s.tokenSessionMap[token] = conn.ID()
+	s.mu.Unlock()
+	var app websocket2.ConnectionApplication
+	if err := app.OnConnect(context.Background(), token, conn.ID()); err != nil {
+		xlogger.Error(context.Background(), "OnConnect-failed", xlogger.Err(err))
+		return err
+	} else {
+		xlogger.Info(context.Background(), "OnConnect-success", xlogger.Any(token, conn.ID()))
+	}
+	return nil
+}
+
+func (s *WebsocketServer) onDisconnect(conn socketio.Conn, msg string) {
+	u := conn.URL()
+	token := u.Query().Get("token")
+
+	s.mu.Lock()
+	delete(s.conns, conn.ID())
+	delete(s.tokenSessionMap, token)
+	s.mu.Unlock()
+
+	var app websocket2.ConnectionApplication
+	if err := app.OnDisConnect(context.Background(), token, conn.ID()); err != nil {
+		xlogger.Error(context.Background(), "OnDisConnect-failed", xlogger.Err(err))
+	} else {
+		xlogger.Info(context.Background(), "OnDisConnect-success", xlogger.Any(token, conn.ID()))
+	}
 }
 
 type PushMessageRequest struct {
@@ -125,9 +179,9 @@ func (s *WebsocketServer) Push(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{"err": err})
 		return
 	}
-	s.connMutex.Lock()
+	s.mu.Lock()
 	conn, ok := s.conns[req.SessionId]
-	s.connMutex.Unlock()
+	s.mu.Unlock()
 	if !ok {
 		return
 	}

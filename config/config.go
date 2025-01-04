@@ -11,11 +11,13 @@ var (
 )
 
 type config struct {
-	MachineID     uint16   `json:"machineId" default:"1"`
-	ListenAddress string   `json:"listenAddress" default:":9000"`
-	SocketIO      SocketIO `json:"socketIo"`
-	Nsq           Nsq      `json:"nsq"`
-	Log           Log      `json:"log"`
+	MachineID     uint16    `json:"machineId" default:"1"`
+	ListenAddress string    `json:"listenAddress" default:":9000"`
+	SocketIO      SocketIO  `json:"socketIo"`
+	Nsq           Nsq       `json:"nsq"`
+	Log           Log       `json:"log"`
+	AuthCheck     AuthCheck `json:"authCheck"`
+	Redis         Redis     `json:"redis"`
 }
 
 type SocketIO struct {
@@ -28,6 +30,24 @@ type SocketIO struct {
 
 type Nsq struct {
 	Address string `json:"address"`
+}
+
+type AuthCheck struct {
+	Enable       bool           `json:"enable"`
+	HttpUrl      string         `json:"httpUrl"`      // 检测的url
+	ResponseCode int            `json:"responseCode"` // 成功返回的状态码
+	Timeout      utils.Duration `json:"timeout"`      // 检测超时.
+}
+
+type Redis struct {
+	Address     string         `json:"address"`
+	DB          int            `json:"db"`
+	Password    string         `json:"password"`
+	KeyPrefix   string         `json:"keyPrefix"`
+	Timeout     utils.Duration `json:"timeout"`
+	PoolSize    int            `json:"poolSize"`
+	MinIdleConn int            `json:"minIdleConn"`
+	MaxIdleConn int            `json:"maxIdleConn"`
 }
 
 type Log struct {

@@ -8,3 +8,13 @@ socketIo:
 
 nsq:
   address: 127.0.0.1:4150
+
+redis:
+  address: 127.0.0.1:6379
+  password: "238XSfh98xa"
+  db: 1
+  keyPrefix: "socket.io"
+  timeout: 60s
+  poolSize: 10
+  minIdleConn: 1
+  maxIdleConn: 5
