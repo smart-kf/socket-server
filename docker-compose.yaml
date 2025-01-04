@@ -6,7 +6,7 @@ services:
     command:
       - /app/app
     ports:
-      - "8081:8081"
+      - "9000:9000"
     restart: always
     networks:
       - kf_network
