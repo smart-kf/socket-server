@@ -86,16 +86,27 @@ func (s *WebsocketServer) onRequestCheck(r *http.Request) (http.Header, error) {
 	return http.Header{}, nil
 }
 
+type WebsocketAuthRequest struct {
+	Token     string `json:"token"`
+	Ip        string `json:"ip"`
+	Platform  string `json:"platform"`
+	UserAgent string `json:"userAgent"`
+}
+
 func (s *WebsocketServer) doAuthCheck(r *http.Request) error {
 	client := resty.NewWithClient(
 		&http.Client{
 			Timeout: config.Config.AuthCheck.Timeout.Duration(),
 		},
 	)
+	var authRequest = WebsocketAuthRequest{
+		Token:     r.URL.Query().Get("token"),
+		Ip:        r.RemoteAddr,
+		Platform:  r.URL.Query().Get("platform"),
+		UserAgent: r.UserAgent(),
+	}
 	req := client.R().SetBody(
-		map[string]interface{}{
-			"token": r.URL.Query().Get("token"),
-		},
+		authRequest,
 	)
 	rsp, err := req.Post(config.Config.AuthCheck.HttpUrl)
 	if err != nil {

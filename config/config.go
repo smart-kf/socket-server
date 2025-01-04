@@ -29,7 +29,8 @@ type SocketIO struct {
 }
 
 type Nsq struct {
-	Address string `json:"address"`
+	Address      string `json:"address"`
+	MessageTopic string `json:"messageTopic"`
 }
 
 type AuthCheck struct {

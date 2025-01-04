@@ -8,6 +8,7 @@ import (
 	"github.com/alibaba/ioc-golang/autowire/singleton"
 	xlogger "github.com/clearcodecn/log"
 
+	"goim3/config"
 	"goim3/domain/websocket/model"
 	"goim3/infrastructure/nsq"
 	"goim3/infrastructure/nsq/dao/websocket"
@@ -51,7 +52,7 @@ func (m *MessageNsqImpl) Create(ctx context.Context, message *model.Message) err
 	body, _ := json.Marshal(messageDao)
 
 	xlogger.Info(ctx, "nsq produce message", xlogger.Any("msg", string(body)))
-	if err := nsq.NSQProducer.Publish("message", body); err != nil {
+	if err := nsq.NSQProducer.Publish(config.Config.Nsq.MessageTopic, body); err != nil {
 		return err
 	}
 	return nil

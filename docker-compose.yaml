@@ -1,0 +1,16 @@
+services:
+  socket-server:
+    image: socket-server:latest
+    volumes:
+      - ./prod/config.yaml:/app/config.yaml
+    command:
+      - /app/app
+    ports:
+      - "8081:8081"
+    restart: always
+    networks:
+      - kf_network
+
+networks:
+  kf_network:
+    external: true

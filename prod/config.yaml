@@ -1,3 +1,6 @@
+machineId: 1
+listenAddress: ":9000"
+
 socketIo:
   readTimeout: 5s
   writeTimeout: 5s
@@ -7,11 +10,17 @@ socketIo:
   writeBufferSize: 1024
 
 nsq:
-  address: 127.0.0.1:4150
+  address: nsq:4150
   messageTopic: "im_message"
 
+authCheck:
+  enable: false
+  httpUrl: http://kf-api:8000/xxx
+  responseCode: 200
+  timeout: 60s
+
 redis:
-  address: 127.0.0.1:6379
+  address: redis:6379
   password: "238XSfh98xa"
   db: 1
   keyPrefix: "socket.io"
@@ -19,3 +28,7 @@ redis:
   poolSize: 10
   minIdleConn: 1
   maxIdleConn: 5
+
+log:
+  level: info
+  format: json
