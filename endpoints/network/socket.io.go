@@ -157,7 +157,7 @@ func (s *WebsocketServer) OnConnect(conn socketio.Conn) error {
 	s.tokenSessionMap[token] = conn.ID()
 	s.mu.Unlock()
 	var app websocket2.ConnectionApplication
-	if err := app.OnConnect(context.Background(), token, conn.ID()); err != nil {
+	if err := app.OnConnect(context.Background(), conn, token, conn.ID()); err != nil {
 		xlogger.Error(context.Background(), "OnConnect-failed", xlogger.Err(err))
 		return err
 	} else {
