@@ -17,7 +17,7 @@ func (s *HttpServer) Start() {
 	s.WebsocketServer = network.CreateWebsocketServer()
 
 	g := gin.Default()
-	g.Any("/sub/", gin.WrapH(s.WebsocketServer))
+	g.Any("/socket.io/", gin.WrapH(s.WebsocketServer))
 	g.Static("/static", "./asset")
 	g.POST("/api/push", s.WebsocketServer.Push)
 	http.ListenAndServe(config.Config.ListenAddress, g)
