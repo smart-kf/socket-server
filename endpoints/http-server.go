@@ -18,7 +18,7 @@ func (s *HttpServer) Start() {
 	s.WebsocketServer = network.CreateWebsocketServer()
 
 	g := gin.Default()
-	g.Use(cors.New(cors.DefaultConfig()))
+	g.Use(cors.Default())
 	g.Any("/socket.io/", gin.WrapH(s.WebsocketServer))
 	g.Static("/static", "./asset")
 	g.POST("/api/push", s.WebsocketServer.Push)
