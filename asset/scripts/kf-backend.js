@@ -5,7 +5,7 @@ var socket = io("wss://goim.smartkf.top:443/",{
     secure: true,
     transports: ['websocket'],
     query: "token=helloworld",
-    path: "/sub",
+    path: "/socket.io/",
 });
 
 socket.on('reply', function (msg) {

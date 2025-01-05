@@ -13,6 +13,7 @@ import (
 	socketio "github.com/smart-kf/go-socket.io"
 	"github.com/smart-kf/go-socket.io/engineio"
 	"github.com/smart-kf/go-socket.io/engineio/transport"
+	"github.com/smart-kf/go-socket.io/engineio/transport/polling"
 	"github.com/smart-kf/go-socket.io/engineio/transport/websocket"
 
 	websocket2 "goim3/application/websocket"
@@ -44,10 +45,14 @@ func CreateWebsocketServer() *WebsocketServer {
 			PingTimeout:  config.Config.SocketIO.PingTimeout.Duration(),
 			PingInterval: config.Config.SocketIO.PingInterval.Duration(),
 			Transports: []transport.Transport{
+				polling.Default,
 				&websocket.Transport{
 					ReadBufferSize:   config.Config.SocketIO.ReadBufferSize,
 					WriteBufferSize:  config.Config.SocketIO.WriteBufferSize,
 					HandshakeTimeout: config.Config.SocketIO.ReadTimeout.Duration(),
+					CheckOrigin: func(r *http.Request) bool {
+						return true
+					},
 				},
 			},
 			SessionIDGenerator: idGenerator.(*utils.IDGenerator),
