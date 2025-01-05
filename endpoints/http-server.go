@@ -3,6 +3,7 @@ package endpoints
 import (
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	"goim3/config"
@@ -17,6 +18,7 @@ func (s *HttpServer) Start() {
 	s.WebsocketServer = network.CreateWebsocketServer()
 
 	g := gin.Default()
+	g.Use(cors.New(cors.DefaultConfig()))
 	g.Any("/socket.io/", gin.WrapH(s.WebsocketServer))
 	g.Static("/static", "./asset")
 	g.POST("/api/push", s.WebsocketServer.Push)

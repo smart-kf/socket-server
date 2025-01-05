@@ -1,10 +1,10 @@
 var platform = "kf-backend";
 
-var socket = io("wss://goim.smartkf.top:443/",{
+var socket = io("ws://goim.smartkf.top:80/", {
     host: "goim.smartkf.top",
     secure: true,
     transports: ['websocket'],
-    query: "token=helloworld",
+    query: "token=helloworld&platform=kf",
     path: "/socket.io/",
 });
 
@@ -22,3 +22,26 @@ $('form').submit(function () {
 socket.on('disconnect', (reason) => {
     console.log('Disconnected from the server:', reason);
 });
+
+
+$("#push").on("click", function () {
+    mockPush();
+})
+
+function mockPush() {
+    // mock 接收一条消息.
+    fetch("http://goim.smartkf.top/api/push", {
+        method:"POST",
+        headers: {
+            "Content-Type":"application/json"
+        },
+        body: JSON.stringify({
+            sessionId: socket.sessionId,
+            event: "test",
+            data: JSON.stringify({
+                msgType: "text",
+                content: "hello world",
+            })
+        })
+    })
+}

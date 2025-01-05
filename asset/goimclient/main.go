@@ -1,32 +1,21 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	socketio "github.com/smart-kf/go-socket.io"
-	"github.com/smart-kf/go-socket.io/engineio"
-	"github.com/smart-kf/go-socket.io/engineio/transport"
-	"github.com/smart-kf/go-socket.io/engineio/transport/websocket"
 )
 
 func main() {
 	// wss://goim.smartkf.top/sub/?token=helloworld&EIO=3&transport=websocket
 	// https://goim.smartkf.top/socket.io/?token=helloworld&EIO=3&transport=websocket
 	// Simple client to talk to default-http example
-	uri := "http://goim.smartkf.top/socket.io"
+	uri := "http://goim.smartkf.top/?token=helloworld&platform=kf&transport=websocket"
 
 	client, err := socketio.NewClient(
-		uri, &engineio.Options{
-			Transports: []transport.Transport{
-				&websocket.Transport{
-					CheckOrigin: func(r *http.Request) bool {
-						return true
-					},
-				},
-			},
-		},
+		uri, nil,
 	)
 	if err != nil {
 		panic(err)
@@ -39,6 +28,13 @@ func main() {
 		},
 	)
 
+	client.OnConnect(
+		func(conn socketio.Conn) error {
+			fmt.Println(conn.ID())
+			return nil
+		},
+	)
+
 	err = client.Connect()
 	if err != nil {
 		panic(err)
@@ -46,7 +42,7 @@ func main() {
 
 	client.Emit("notice", "hello")
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(100 * time.Second)
 	err = client.Close()
 	if err != nil {
 		panic(err)
