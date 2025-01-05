@@ -11,3 +11,7 @@ type MessageVo struct {
 	Ip          string // 客户IP
 	IsFromKf    bool   // 是否是来自客服发送
 }
+
+type VoSessionId struct {
+	SessionId string
+}

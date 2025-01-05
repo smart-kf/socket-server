@@ -28,6 +28,10 @@ $("#push").on("click", function () {
     mockPush();
 })
 
+socket.on("connect",function(){
+    console.log("connected-->",socket)
+})
+
 function mockPush() {
     // mock 接收一条消息.
     fetch("http://goim.smartkf.top/api/push", {

@@ -33,20 +33,20 @@ jobs:
         with:
           go-version: '1.23.3'
 
-      - name: Install dependencies
-        run: go mod tidy  # 安装依赖项
-
-      - name: Build
-        run: make build
-
-      - name: Create archive
-        run: |
-          tar -czvf socket-server.tar.gz ./bin/app  
-
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: socket-server.tar.gz
+#      - name: Install dependencies
+#        run: go mod tidy  # 安装依赖项
+#
+#      - name: Build
+#        run: make build
+#
+#      - name: Create archive
+#        run: |
+#          tar -czvf socket-server.tar.gz ./bin/app
+#
+#      - name: Release
+#        uses: softprops/action-gh-release@v2
+#        with:
+#          files: socket-server.tar.gz
 
       - name: Trigger Ci Build-image
         run: |
