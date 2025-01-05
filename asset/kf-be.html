@@ -60,6 +60,62 @@
 <button id="push">向自己推送一条消息</button>
 <script src="./scripts/socket.io.1.2.0.js"></script>
 <script src="./scripts/jquery.js"></script>
-<script src="./scripts/kf-backend.js?v=2"></script>
+<script>
+    var platform = "kf-backend"; // platform: kf || kf-backend
+    localStorage.debug = '*'; // 开启 socketio 的 debug 信息.
+
+    //  线上
+    var socket = io("ws://goim.smartkf.top:80/", {
+        host: "goim.smartkf.top", // 域名，部署到线上直接用当前域名，本地连接可以写死。
+        secure: true, // 固定
+        transports: ['websocket'], // 固定
+        query: "token=helloworld&platform=" + platform,  // token 需要换成登录token，现在没有做校验可以随便放
+        path: "/socket.io/", // 固定
+    });
+
+    socket.on('test', function (msg) {
+        let obj =JSON.parse(msg)
+        $('#messages').append($('<li>').text("mockPush-->" + obj.content));
+    });
+
+    $('form').submit(function () {
+        socket.emit('message', JSON.stringify({"msgType": "text", "ip": "127.0.0.1", "content": $("#m").val()}));
+        $('#m').val('');
+        return false;
+    });
+
+    // 监听断开连接事件
+    socket.on('disconnect', (reason) => {
+        console.log('Disconnected from the server:', reason);
+    });
+
+
+    $("#push").on("click", function () {
+        mockPush();
+    })
+
+    // 连上服务器以后，会告诉客户端的sessionId是多少，这个id是 websocket的 连接id
+    socket.on("sessionId",function(msg){
+        console.log("sessionId-->",msg)
+    })
+
+    function mockPush() {
+        // mock 接收一条消息.
+        fetch("http://goim.smartkf.top/api/push", {
+            method:"POST",
+            headers: {
+                "Content-Type":"application/json"
+            },
+            body: JSON.stringify({
+                sessionId: socket.io.engine.id,     // mock 推送，参数是连接id，需要推送给谁.
+                event: "test",
+                data: JSON.stringify({
+                    msgType: "text",
+                    content: "hello world",
+                })
+            })
+        })
+    }
+</script>
 </body>
 </html>

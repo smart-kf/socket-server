@@ -13,5 +13,5 @@ type MessageVo struct {
 }
 
 type VoSessionId struct {
-	SessionId string
+	SessionId string `json:"sessionId"`
 }

@@ -18,8 +18,8 @@ var socket = io("ws://goim.smartkf.top:80/", {
 //     path: "/socket.io/",
 // });
 
-socket.on('reply', function (msg) {
-    $('#messages').append($('<li>').text("reply-->" + msg));
+socket.on('test', function (msg) {
+    $('#messages').append($('<li>').text("reply-->" + msg.content));
 });
 
 $('form').submit(function () {
@@ -41,6 +41,7 @@ $("#push").on("click", function () {
 socket.on("sessionId",function(msg){
     console.log("sessionId-->",msg)
 })
+
 
 function mockPush() {
     // mock 接收一条消息.
