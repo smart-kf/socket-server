@@ -26,12 +26,14 @@ func (a *ConnectionApplication) OnConnect(
 		return err
 	}
 
-	// 推送连接成功事件
-	conn.Emit(
-		"connected", websocket2.VoSessionId{
-			SessionId: conn.ID(),
-		},
-	)
+	go func() {
+		// 推送连接成功事件
+		conn.Emit(
+			"sessionId", websocket2.VoSessionId{
+				SessionId: conn.ID(),
+			},
+		)
+	}()
 
 	return nil
 }

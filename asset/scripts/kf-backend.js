@@ -1,5 +1,7 @@
 var platform = "kf-backend";
+localStorage.debug = '*'; // 开启 socketio 的 debug 信息.
 
+//  线上
 var socket = io("ws://goim.smartkf.top:80/", {
     host: "goim.smartkf.top",
     secure: true,
@@ -7,6 +9,14 @@ var socket = io("ws://goim.smartkf.top:80/", {
     query: "token=helloworld&platform=kf",
     path: "/socket.io/",
 });
+// 本地.
+// var socket = io("ws://localhost:9000/", {
+//     host: "localhost:9000",
+//     secure: true,
+//     transports: ['websocket'],
+//     query: "token=helloworld&platform=kf",
+//     path: "/socket.io/",
+// });
 
 socket.on('reply', function (msg) {
     $('#messages').append($('<li>').text("reply-->" + msg));
@@ -28,8 +38,8 @@ $("#push").on("click", function () {
     mockPush();
 })
 
-socket.on("connect",function(){
-    console.log("connected-->",socket)
+socket.on("sessionId",function(msg){
+    console.log("sessionId-->",msg)
 })
 
 function mockPush() {
@@ -40,7 +50,7 @@ function mockPush() {
             "Content-Type":"application/json"
         },
         body: JSON.stringify({
-            sessionId: socket.sessionId,
+            sessionId: socket.io.engine.id,
             event: "test",
             data: JSON.stringify({
                 msgType: "text",
