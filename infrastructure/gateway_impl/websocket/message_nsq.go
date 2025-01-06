@@ -12,20 +12,13 @@ import (
 	"goim3/domain/websocket/model"
 	"goim3/infrastructure/nsq"
 	"goim3/infrastructure/nsq/dao/websocket"
-	"goim3/pkg/utils"
 )
 
 func init() {
 	singleton.RegisterStructDescriptor(
 		&autowire.StructDescriptor{
 			Factory: func() interface{} {
-				idgen, err := singleton.GetImpl("IDGenerator", nil)
-				if err != nil {
-					panic(err)
-				}
-				return &MessageNsqImpl{
-					idGenerator: idgen.(*utils.IDGenerator),
-				}
+				return &MessageNsqImpl{}
 			},
 			Alias: "MessageGateway",
 		},
@@ -33,11 +26,11 @@ func init() {
 }
 
 type MessageNsqImpl struct {
-	idGenerator *utils.IDGenerator
 }
 
 func (m *MessageNsqImpl) Create(ctx context.Context, message *model.Message) error {
-	var messageDao = websocket.Message{
+	messageDao := websocket.Message{
+		Event:       message.Event,
 		MsgType:     message.MsgType,
 		MsgId:       message.MsgId,
 		GuestName:   message.GuestName,
@@ -46,9 +39,10 @@ func (m *MessageNsqImpl) Create(ctx context.Context, message *model.Message) err
 		KfAvatar:    message.KfAvatar,
 		Content:     message.Content,
 		Ip:          message.Ip,
-		IsFromKf:    message.IsFromKf,
+		Platform:    message.Platform,
+		SessionId:   message.SessionId,
+		Token:       message.Token,
 	}
-	messageDao.MsgId = m.idGenerator.NewID()
 	body, _ := json.Marshal(messageDao)
 
 	xlogger.Info(ctx, "nsq produce message", xlogger.Any("msg", string(body)))

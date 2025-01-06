@@ -9,7 +9,9 @@ import (
 
 func CreateConn(ctx context.Context, conn *model.Conn) error {
 	connAgg := websocket.FactoryConnAgg(ctx, conn)
-	return connAgg.Create(ctx)
+	if err := connAgg.Create(ctx); err != nil {
+		return err
+	}
 }
 
 func DeleteConn(ctx context.Context, conn *model.Conn) error {

@@ -8,9 +8,7 @@ import (
 	"goim3/config"
 )
 
-var (
-	Client *redis.Client
-)
+var Client *redis.Client
 
 func InitRedisClient() {
 	client := redis.NewClient(

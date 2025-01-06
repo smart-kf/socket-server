@@ -22,15 +22,19 @@ func (ConnRedisImpl) getConnKey() string {
 // Create 保存用户连接信息，用户token -> sessionId 的映射, 注意这里存储的不是json数据.
 // hash  key= prefix.token  , value = sessionId
 func (c *ConnRedisImpl) Create(ctx context.Context, conn *model.Conn) error {
-	var connDao = dao.Conn{
+	connDao := dao.Conn{
 		SessionId: conn.SessionId,
 		Token:     conn.Token,
+		Platform:  conn.Platform,
 	}
-	return redis.Client.HSet(ctx, c.getConnKey(), connDao.Token, connDao.SessionId).Err()
+	return redis.Client.HSet(
+		ctx, c.getConnKey(), fmt.Sprintf("%s-%s", connDao.Platform, connDao.Token),
+		connDao.SessionId,
+	).Err()
 }
 
 func (c *ConnRedisImpl) Delete(ctx context.Context, conn *model.Conn) error {
-	var connDao = dao.Conn{
+	connDao := dao.Conn{
 		SessionId: conn.SessionId,
 		Token:     conn.Token,
 	}

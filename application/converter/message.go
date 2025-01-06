@@ -11,7 +11,9 @@ type MessageDTO struct {
 	KfAvatar    string `json:"kfAvatar"`    // 客服头像
 	Content     string `json:"content"`     // 具体消息内容
 	Ip          string `json:"ip"`          // 客户IP
-	IsFromKf    bool   `json:"isFromKf"`    // 是否是来自客服发送
+	Token       string `json:"token"`
+	Platform    string `json:"platform"`
+	SessionId   string `json:"sessionId"`
 }
 
 func (m *MessageDTO) ToModel() *model.Message {
@@ -24,6 +26,8 @@ func (m *MessageDTO) ToModel() *model.Message {
 		KfAvatar:    m.KfAvatar,
 		Content:     m.Content,
 		Ip:          m.Ip,
-		IsFromKf:    m.IsFromKf,
+		Token:       m.Token,
+		Platform:    m.Platform,
+		SessionId:   m.SessionId,
 	}
 }

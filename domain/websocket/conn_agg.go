@@ -47,5 +47,8 @@ func (a *ConnAgg) Create(ctx context.Context) error {
 	if err := a.init(); err != nil {
 		return err
 	}
-	return a.connGateway.Create(ctx, a.conn)
+	if err := a.connGateway.Create(ctx, a.conn); err != nil {
+		return err
+	}
+	return nil
 }

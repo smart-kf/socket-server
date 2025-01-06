@@ -6,9 +6,7 @@ import (
 	"goim3/pkg/utils"
 )
 
-var (
-	Config *config
-)
+var Config *config
 
 type config struct {
 	MachineID     uint16    `json:"machineId" default:"1"`

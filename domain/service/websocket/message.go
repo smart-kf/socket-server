@@ -8,7 +8,7 @@ import (
 )
 
 func CreateMessage(ctx context.Context, message *model.Message) error {
-	var agg = websocket.FactoryMessageAgg(ctx, message)
+	agg := websocket.FactoryMessageAgg(ctx, message)
 
 	return agg.Create(ctx)
 }

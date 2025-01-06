@@ -2,6 +2,7 @@ package model
 
 // Message 发送的消息.
 type Message struct {
+	Event       string
 	MsgType     string // text || image || video
 	MsgId       string
 	GuestName   string // 客户名称
@@ -10,5 +11,7 @@ type Message struct {
 	KfAvatar    string // 客服头像
 	Content     string // 具体消息内容
 	Ip          string // 客户IP
-	IsFromKf    bool   // 是否是来自客服发送
+	Platform    string `json:"platform"`
+	SessionId   string `json:"sessionId"` // sessionId
+	Token       string `json:"token"`
 }

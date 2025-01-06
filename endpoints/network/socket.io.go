@@ -104,7 +104,7 @@ func (s *WebsocketServer) doAuthCheck(r *http.Request) error {
 			Timeout: config.Config.AuthCheck.Timeout.Duration(),
 		},
 	)
-	var authRequest = WebsocketAuthRequest{
+	authRequest := WebsocketAuthRequest{
 		Token:     r.URL.Query().Get("token"),
 		Ip:        r.RemoteAddr,
 		Platform:  r.URL.Query().Get("platform"),
@@ -148,16 +148,19 @@ func (s *WebsocketServer) onMessage(conn socketio.Conn, msg string) {
 }
 
 func (s *WebsocketServer) OnConnect(conn socketio.Conn) error {
-	conn.SetContext("")
 	u := conn.URL()
 	token := u.Query().Get("token")
+	platform := u.Query().Get("platform")
+
+	ctx := utils.SetConnContext(context.Background(), token, conn.ID(), platform)
+	conn.SetContext(ctx)
 
 	s.mu.Lock()
 	s.conns[conn.ID()] = conn
 	s.tokenSessionMap[token] = conn.ID()
 	s.mu.Unlock()
 	var app websocket2.ConnectionApplication
-	if err := app.OnConnect(context.Background(), conn, token, conn.ID()); err != nil {
+	if err := app.OnConnect(context.Background(), token, conn.ID(), platform); err != nil {
 		xlogger.Error(context.Background(), "OnConnect-failed", xlogger.Err(err))
 		return err
 	} else {
@@ -167,19 +170,17 @@ func (s *WebsocketServer) OnConnect(conn socketio.Conn) error {
 }
 
 func (s *WebsocketServer) onDisconnect(conn socketio.Conn, msg string) {
-	u := conn.URL()
-	token := u.Query().Get("token")
-
+	ctx := utils.MustGetConnContext(conn.Context().(context.Context))
 	s.mu.Lock()
-	delete(s.conns, conn.ID())
-	delete(s.tokenSessionMap, token)
+	delete(s.conns, ctx.SessionId)
+	delete(s.tokenSessionMap, ctx.SessionId)
 	s.mu.Unlock()
 
 	var app websocket2.ConnectionApplication
-	if err := app.OnDisConnect(context.Background(), token, conn.ID()); err != nil {
+	if err := app.OnDisConnect(context.Background(), ctx.Token, ctx.SessionId, ctx.Platform); err != nil {
 		xlogger.Error(context.Background(), "OnDisConnect-failed", xlogger.Err(err))
 	} else {
-		xlogger.Info(context.Background(), "OnDisConnect-success", xlogger.Any(token, conn.ID()))
+		xlogger.Info(context.Background(), "OnDisConnect-success", xlogger.Any(ctx.Token, conn.ID()))
 	}
 }
 

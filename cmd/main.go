@@ -12,13 +12,12 @@ import (
 	"goim3/infrastructure/redis"
 )
 
-var (
-	configFile string
-)
+var configFile string
 
 func init() {
 	flag.StringVar(&configFile, "c", "config.yaml", "配置文件")
 }
+
 func main() {
 	flag.Parse()
 
@@ -46,7 +45,6 @@ func initLogger() {
 			File:   config.Config.Log.File,
 		},
 	)
-
 	if err != nil {
 		panic(err)
 	}

@@ -27,9 +27,7 @@ func init() {
 	)
 }
 
-var (
-	hostname string
-)
+var hostname string
 
 func init() {
 	hostname, _ = os.Hostname()
