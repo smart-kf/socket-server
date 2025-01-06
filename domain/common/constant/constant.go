@@ -6,8 +6,9 @@ const (
 )
 
 const (
-	EventSessionId = "sessionId" // 新建连接、初始化sessionId事件
-	Message        = "message"   // 发送消息事件
-	Online         = "online"    // 上线事件
-	Offline        = "offline"   // 下线事件
+	EventSessionId = "sessionId"  // 新建连接、初始化sessionId事件
+	DisConnect     = "disConnect" // 连接断开事件
+	Message        = "message"    // 发送消息事件
+	Online         = "online"     // 上线事件
+	Offline        = "offline"    // 下线事件
 )

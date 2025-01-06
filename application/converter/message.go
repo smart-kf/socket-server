@@ -1,6 +1,10 @@
 package converter
 
-import "goim3/domain/websocket/model"
+import (
+	"goim3/domain/common/constant"
+	"goim3/domain/websocket/model"
+	"goim3/pkg/utils"
+)
 
 type MessageDTO struct {
 	MsgType     string `json:"msgType"`     // text || image || video
@@ -16,7 +20,7 @@ type MessageDTO struct {
 	SessionId   string `json:"sessionId"`
 }
 
-func (m *MessageDTO) ToModel() *model.Message {
+func (m *MessageDTO) ToModel(connCtx *utils.ConnContext) *model.Message {
 	return &model.Message{
 		MsgType:     m.MsgType,
 		MsgId:       m.MsgId,
@@ -26,8 +30,9 @@ func (m *MessageDTO) ToModel() *model.Message {
 		KfAvatar:    m.KfAvatar,
 		Content:     m.Content,
 		Ip:          m.Ip,
-		Token:       m.Token,
-		Platform:    m.Platform,
-		SessionId:   m.SessionId,
+		Event:       constant.Message,
+		Token:       connCtx.Token,
+		Platform:    connCtx.Platform,
+		SessionId:   connCtx.SessionId,
 	}
 }

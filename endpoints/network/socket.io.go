@@ -144,7 +144,7 @@ func (s *WebsocketServer) RegisterEvents() {
 
 func (s *WebsocketServer) onMessage(conn socketio.Conn, msg string) {
 	var app websocket2.WebsocketApplication
-	app.OnMessage(context.Background(), msg)
+	app.OnMessage(conn.Context().(context.Context), msg)
 }
 
 func (s *WebsocketServer) OnConnect(conn socketio.Conn) error {
@@ -203,4 +203,10 @@ func (s *WebsocketServer) Push(ctx *gin.Context) {
 		return
 	}
 	conn.Emit(req.Event, req.Data)
+
+	ctx.JSON(
+		200, gin.H{
+			"success": true,
+		},
+	)
 }

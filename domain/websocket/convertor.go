@@ -12,6 +12,5 @@ func Message2Model(vo MessageVo) *model.Message {
 		KfAvatar:    vo.KfAvatar,
 		Content:     vo.Content,
 		Ip:          vo.Ip,
-		IsFromKf:    vo.IsFromKf,
 	}
 }

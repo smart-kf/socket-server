@@ -15,7 +15,7 @@ import (
 
 type ConnRedisImpl struct{}
 
-func (ConnRedisImpl) getConnKey() string {
+func (c *ConnRedisImpl) getConnKey() string {
 	return fmt.Sprintf("%s.%s", config.Config.Redis.KeyPrefix, "connection.hash")
 }
 
@@ -37,8 +37,9 @@ func (c *ConnRedisImpl) Delete(ctx context.Context, conn *model.Conn) error {
 	connDao := dao.Conn{
 		SessionId: conn.SessionId,
 		Token:     conn.Token,
+		Platform:  conn.Platform,
 	}
-	return redis.Client.HDel(ctx, c.getConnKey(), connDao.Token).Err()
+	return redis.Client.HDel(ctx, c.getConnKey(), fmt.Sprintf("%s-%s", connDao.Platform, connDao.Token)).Err()
 }
 
 func init() {

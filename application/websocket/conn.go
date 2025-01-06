@@ -59,7 +59,7 @@ func (a *ConnectionApplication) OnDisConnect(
 		ctx, &model.Message{
 			SessionId: sessionId,
 			Platform:  platform,
-			Event:     constant.EventSessionId,
+			Event:     constant.DisConnect,
 			Token:     token,
 		},
 	); err != nil {

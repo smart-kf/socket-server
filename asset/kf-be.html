@@ -73,6 +73,15 @@
         path: "/socket.io/", // 固定
     });
 
+    // // 本地
+    // var socket = io("ws://localhost:9000/", {
+    //     host: "localhost:9000",
+    //     secure: true,
+    //     transports: ['websocket'],
+    //     query: "token=helloworld&platform=kf",
+    //     path: "/socket.io/",
+    // });
+
     socket.on('test', function (msg) {
         let obj =JSON.parse(msg)
         $('#messages').append($('<li>').text("mockPush-->" + obj.content));
@@ -96,7 +105,14 @@
 
     // 连上服务器以后，会告诉客户端的sessionId是多少，这个id是 websocket的 连接id
     socket.on("sessionId",function(msg){
-        console.log("sessionId-->",msg)
+        let data = JSON.parse(msg)
+        console.log("sessionId-->",data)
+    })
+
+    //  发送消息成功，会收到 ack 回复.
+    socket.on("messageAck",function(msg){
+        let data = JSON.parse(msg)
+        console.log("messageAck-->",data)
     })
 
     function mockPush() {

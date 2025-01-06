@@ -12,6 +12,7 @@ func CreateConn(ctx context.Context, conn *model.Conn) error {
 	if err := connAgg.Create(ctx); err != nil {
 		return err
 	}
+	return nil
 }
 
 func DeleteConn(ctx context.Context, conn *model.Conn) error {
