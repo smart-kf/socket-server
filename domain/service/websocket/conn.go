@@ -30,6 +30,7 @@ func DeleteConn(ctx context.Context, conn *model.Conn) error {
 	if err := connAgg.Delete(ctx); err != nil {
 		return err
 	}
+
 	// 发布一个离线事件.
 	agg := websocket.FactoryMessageAgg(
 		ctx, &model.Message{

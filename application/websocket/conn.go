@@ -55,16 +55,5 @@ func (a *ConnectionApplication) OnDisConnect(
 		Platform:  platform,
 	}
 
-	if err := websocket.CreateMessage(
-		ctx, &model.Message{
-			SessionId: sessionId,
-			Platform:  platform,
-			Event:     constant.DisConnect,
-			Token:     token,
-		},
-	); err != nil {
-		return err
-	}
-
 	return websocket.DeleteConn(ctx, dto.ToModel())
 }
