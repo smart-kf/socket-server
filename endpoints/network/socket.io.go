@@ -185,9 +185,10 @@ func (s *WebsocketServer) onDisconnect(conn socketio.Conn, msg string) {
 }
 
 type PushMessageRequest struct {
-	SessionId string `json:"sessionId"`
-	Event     string `json:"event"`
-	Data      string `json:"data"`
+	SessionIds []string `json:"sessionIds"`
+	SessionId  string   `json:"sessionId"`
+	Event      string   `json:"event"`
+	Data       string   `json:"data"`
 }
 
 func (s *WebsocketServer) Push(ctx *gin.Context) {
@@ -196,14 +197,30 @@ func (s *WebsocketServer) Push(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{"err": err})
 		return
 	}
+	var sessionIds = req.SessionIds
+	if req.SessionId != "" {
+		sessionIds = append(sessionIds, req.SessionId)
+	}
+	var conns []socketio.Conn
 	s.mu.Lock()
-	conn, ok := s.conns[req.SessionId]
+	for _, sessionId := range sessionIds {
+		conn, ok := s.conns[sessionId]
+		if ok {
+			conns = append(conns, conn)
+		}
+	}
 	s.mu.Unlock()
-	if !ok {
+	if len(conns) == 0 {
+		ctx.JSON(
+			200, gin.H{
+				"success": true,
+			},
+		)
 		return
 	}
-	conn.Emit(req.Event, req.Data)
-
+	for _, conn := range conns {
+		conn.Emit(req.Event, req.Data)
+	}
 	ctx.JSON(
 		200, gin.H{
 			"success": true,
