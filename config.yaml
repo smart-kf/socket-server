@@ -1,4 +1,5 @@
 listenAddress: ":9000"
+machineId: 1
 
 socketIo:
   readTimeout: 5s

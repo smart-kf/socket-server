@@ -14,8 +14,8 @@ nsq:
   messageTopic: "im_message"
 
 authCheck:
-  enable: false
-  httpUrl: http://kf-api:8000/xxx
+  enable: true
+  httpUrl: http://kf-api:8081/internal/api/websocket-auth
   responseCode: 200
   timeout: 60s
 
@@ -30,5 +30,5 @@ redis:
   maxIdleConn: 5
 
 log:
-  level: info
+  level: debug
   format: json
