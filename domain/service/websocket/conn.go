@@ -9,10 +9,6 @@ import (
 )
 
 func CreateConn(ctx context.Context, conn *model.Conn) error {
-	connAgg := websocket.FactoryConnAgg(ctx, conn)
-	if err := connAgg.Create(ctx); err != nil {
-		return err
-	}
 	// 发布一个上线事件.
 	agg := websocket.FactoryMessageAgg(
 		ctx, &model.Message{
@@ -26,11 +22,6 @@ func CreateConn(ctx context.Context, conn *model.Conn) error {
 }
 
 func DeleteConn(ctx context.Context, conn *model.Conn) error {
-	connAgg := websocket.FactoryConnAgg(ctx, conn)
-	if err := connAgg.Delete(ctx); err != nil {
-		return err
-	}
-
 	// 发布一个离线事件.
 	agg := websocket.FactoryMessageAgg(
 		ctx, &model.Message{

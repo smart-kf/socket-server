@@ -26,17 +26,6 @@ func (a *ConnectionApplication) OnConnect(
 		return err
 	}
 
-	// if err := websocket.CreateMessage(
-	// 	ctx, &model.Message{
-	// 		SessionId: sessionId,
-	// 		Platform:  platform,
-	// 		Event:     constant.EventSessionId,
-	// 		Token:     token,
-	// 	},
-	// ); err != nil {
-	// 	return err
-	// }
-
 	return nil
 }
 

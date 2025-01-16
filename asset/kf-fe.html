@@ -55,12 +55,13 @@
 <form action="">
     <input id="m" autocomplete="off"/>
     <button>Send</button>
+
 </form>
 <button id="push">向自己推送一条消息</button>
 <script src="./scripts/socket.io.1.2.0.js"></script>
 <script src="./scripts/jquery.js"></script>
 <script>
-    var platform = "kf-backend"; // platform: kf || kf-backend
+    var platform = "kf"; // platform: kf || kf-backend
     localStorage.debug = '*'; // 开启 socketio 的 debug 信息.
 
     //  线上
@@ -77,17 +78,30 @@
         host: "localhost:9000",
         secure: true,
         transports: ['websocket'],
-        query: "token=f27df407-784e-4792-92e4-929491380e82&platform=" + platform,
+        query: "token=4|601e8b796a9d460c866998eb9534fb07&platform=" + platform,
         path: "/socket.io/",
     });
 
-    // 发送对象:
-    let guestId = '4|601e8b796a9d460c866998eb9534fb07'
+    /**
+     * type MessageDTO struct {
+     *    MsgType     string `json:"msgType"`     // text || image || video
+     *    MsgId       string `json:"msgId"`       // 消息id
+     *    GuestName   string `json:"guestName"`   // 客户名称
+     *    GuestAvatar string `json:"guestNvatar"` // 客户头像
+     *    KfName      string `json:"kfName"`      // 客服名称
+     *    KfAvatar    string `json:"kfAvatar"`    // 客服头像
+     *    Content     string `json:"content"`     // 具体消息内容
+     *    Ip          string `json:"ip"`          // 客户IP
+     *    Token       string `json:"token"`
+     *    Platform    string `json:"platform"`
+     *    SessionId   string `json:"sessionId"`
+     * }
+     */
+
     $('form').submit(function () {
         var msg = {
             msgType: 'text',
             content:  $("#m").val(),
-            guestId: guestId,
             /* 其他非必填字段 */
             ip: '',
             msgId: '',
@@ -101,6 +115,12 @@
         $('#m').val('');
         return false;
     });
+
+    //  收到消息
+    socket.on("message",function(msg){
+        let data = JSON.parse(msg)
+        $("#messages").append("<li>收到：" + data.content+ "</li>")
+    })
 
     // 监听断开连接事件
     socket.on('disconnect', (reason) => {
@@ -122,11 +142,6 @@
     socket.on("messageAck",function(msg){
         let data = JSON.parse(msg)
         console.log("messageAck-->",data)
-    })
-    //  收到消息
-    socket.on("message",function(msg){
-        let data = JSON.parse(msg)
-        $("#messages").append("<li>收到：" + data.content+ "</li>")
     })
 
     function mockPush() {

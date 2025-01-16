@@ -21,6 +21,14 @@ func (s *HttpServer) Start() {
 	g.Use(cors.Default())
 	g.Any("/socket.io/", gin.WrapH(s.WebsocketServer))
 	g.Static("/static", "./asset")
+
+	// TODO:: push - token
 	g.POST("/api/push", s.WebsocketServer.Push)
+
+	wsGroup := g.Group("/api/ws")
+	{
+		wsGroup.GET("/connections", s.WebsocketServer.Connections)
+	}
+
 	http.ListenAndServe(config.Config.ListenAddress, g)
 }

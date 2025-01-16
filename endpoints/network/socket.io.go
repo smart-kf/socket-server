@@ -3,8 +3,12 @@ package network
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log"
 	"net/http"
 	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/alibaba/ioc-golang/autowire/singleton"
 	xlogger "github.com/clearcodecn/log"
@@ -24,6 +28,9 @@ import (
 type WebsocketServer struct {
 	socketServer *socketio.Server
 
+	connTotal       int64      // 启动服务器至今的连接数量
+	authFailedTotal int64      // auth 失败的连接
+	msgTotal        int64      // 推送消息的数量
 	mu              sync.Mutex // protect follow
 	conns           map[string]socketio.Conn
 	tokenSessionMap map[string]string // token: sessionId
@@ -70,6 +77,13 @@ func CreateWebsocketServer() *WebsocketServer {
 		}
 	}()
 
+	go func() {
+		tk := time.NewTicker(60 * time.Second)
+		for range tk.C {
+			wsServer.getWsResult()
+		}
+	}()
+
 	return wsServer
 }
 
@@ -79,7 +93,6 @@ func (s *WebsocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // onRequestCheck 建立连接的验证代码
 func (s *WebsocketServer) onRequestCheck(r *http.Request) (http.Header, error) {
-	// auth check.
 	if !config.Config.AuthCheck.Enable {
 		return nil, nil
 	}
@@ -115,10 +128,12 @@ func (s *WebsocketServer) doAuthCheck(r *http.Request) error {
 	)
 	rsp, err := req.Post(config.Config.AuthCheck.HttpUrl)
 	if err != nil {
+		atomic.AddInt64(&s.authFailedTotal, 1)
 		return err
 	}
 	rsp.RawBody().Close()
 	if rsp.StatusCode() != config.Config.AuthCheck.ResponseCode {
+		atomic.AddInt64(&s.authFailedTotal, 1)
 		return errors.New("auth failed")
 	}
 	return nil
@@ -166,6 +181,9 @@ func (s *WebsocketServer) OnConnect(conn socketio.Conn) error {
 	} else {
 		xlogger.Info(context.Background(), "OnConnect-success", xlogger.Any(token, conn.ID()))
 	}
+
+	atomic.AddInt64(&s.connTotal, 1)
+
 	return nil
 }
 
@@ -220,10 +238,44 @@ func (s *WebsocketServer) Push(ctx *gin.Context) {
 	}
 	for _, conn := range conns {
 		conn.Emit(req.Event, req.Data)
+
+		fmt.Println("send message -->", string(req.Data))
 	}
+
+	atomic.AddInt64(&s.msgTotal, int64(len(conns)))
 	ctx.JSON(
 		200, gin.H{
 			"success": true,
 		},
 	)
+}
+
+type WsConnResult struct {
+	ConnTotal          int64 `json:"conn_total"`
+	MsgTotal           int64 `json:"msg_total"`
+	CurrentConnections int64 `json:"current_connections"`
+	AuthFailedTotal    int64 `json:"auth_failed_total"`
+}
+
+func (s *WebsocketServer) Connections(ctx *gin.Context) {
+	ctx.JSON(200, s.getWsResult())
+}
+
+func (s *WebsocketServer) getWsResult() WsConnResult {
+	var rsp WsConnResult
+	rsp.MsgTotal = atomic.LoadInt64(&s.msgTotal)
+	rsp.ConnTotal = atomic.LoadInt64(&s.connTotal)
+	rsp.AuthFailedTotal = atomic.LoadInt64(&s.authFailedTotal)
+	s.mu.Lock()
+	rsp.CurrentConnections = int64(len(s.conns))
+	s.mu.Unlock()
+
+	log.Printf(
+		"[连接信息]: 服务启动至今总连接=%d  当前活跃连接:%d 推送消息数量: %d auth失败: %d \n",
+		rsp.ConnTotal,
+		rsp.CurrentConnections,
+		rsp.MsgTotal,
+		rsp.AuthFailedTotal,
+	)
+	return rsp
 }

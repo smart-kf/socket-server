@@ -42,6 +42,7 @@ func (m *MessageNsqImpl) Create(ctx context.Context, message *model.Message) err
 		Platform:    message.Platform,
 		SessionId:   message.SessionId,
 		Token:       message.Token,
+		GuestId:     message.GuestId,
 	}
 	body, _ := json.Marshal(messageDao)
 

@@ -21,3 +21,10 @@ redis:
   poolSize: 10
   minIdleConn: 1
   maxIdleConn: 5
+
+
+authCheck:
+  enable: true
+  httpUrl: http://localhost:8081/internal/api/websocket-auth
+  responseCode: 200
+  timeout: 60s

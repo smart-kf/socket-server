@@ -12,10 +12,3 @@ func FactoryMessageAgg(ctx context.Context, msg *model.Message) *MessageAgg {
 
 	return agg
 }
-
-func FactoryConnAgg(ctx context.Context, conn *model.Conn) *ConnAgg {
-	agg := &ConnAgg{}
-	agg.SetConn(conn)
-
-	return agg
-}

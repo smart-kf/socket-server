@@ -11,6 +11,7 @@ type Message struct {
 	KfAvatar    string // 客服头像
 	Content     string // 具体消息内容
 	Ip          string // 客户IP
+	GuestId     string `json:"guestId"`
 	Platform    string `json:"platform"`
 	SessionId   string `json:"sessionId"` // sessionId
 	Token       string `json:"token"`
